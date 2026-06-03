@@ -6,35 +6,35 @@
     <title>Photo HD Karo</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: #f0f0f0; }
-      .container { background: white; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; }
+       .container { background: white; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; }
         button { background: #4CAF50; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 16px; margin: 10px; cursor: pointer; }
         button:disabled { background: #ccc; }
         img { max-width: 100%; margin-top: 20px; border: 2px solid #ddd; }
         #status { margin: 15px 0; font-weight: bold; }
-      .hidden { display: none; }
+       .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📸 Photo HD Karo</h1>
-        <p>Blurry photo ko 2x HD banao</p>
-        
+        <p>Blurry photo ko 2x HD banao - No API Key</p>
+
         <input type="file" id="photoInput" accept="image/*" style="margin: 20px 0;">
-        
+
         <div id="previewDiv" class="hidden">
             <h3>Original Photo:</h3>
             <img id="previewImg" src="">
         </div>
-        
+
         <button id="hdButton" disabled>2x HD Banao</button>
-        
+
         <div id="status"></div>
-        
+
         <div id="resultDiv" class="hidden">
             <h3>HD Photo:</h3>
             <img id="resultImg" src="">
             <br>
-            <a id="downloadBtn" href="" download="hd-photo.jpg">
+            <a id="downloadBtn" href="" download="hd-photo.png">
                 <button style="background: #2196F3;">HD Photo Download Karo</button>
             </a>
         </div>
@@ -49,11 +49,7 @@
         const resultDiv = document.getElementById('resultDiv');
         const resultImg = document.getElementById('resultImg');
         const downloadBtn = document.getElementById('downloadBtn');
-        
-        // 👇👇👇 YAHAN TERI API KEY DAALNI HAI 👇👇👇
-        const API_KEY = '040151d3-0820-4821-b2be-db364ac72651'; 
-        // Upar wali key adhi dikh rahi hai screenshot me. Poori key daal de.
-        
+
         photoInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -64,39 +60,40 @@
                 status.textContent = '';
             }
         });
-        
+
         hdButton.addEventListener('click', async function() {
             const file = photoInput.files[0];
             if (!file) return;
-            
+
             hdButton.disabled = true;
-            status.textContent = 'Photo HD ho rahi hai... 20-40 sec lagega';
-            
+            status.textContent = 'Photo HD ho rahi hai... 30-60 sec lagega';
+
             const formData = new FormData();
             formData.append('image', file);
-            
+            formData.append('scale', '2');
+            formData.append('noise', '1');
+
             try {
-                const response = await fetch("https://corsproxy.io/?https://api.deepai.org/api/torch-srgan", {
+                const response = await fetch('https://api.waifu2x.me/upscale', {
                     method: 'POST',
-                    headers: { 'Api-Key': API_KEY },
                     body: formData
                 });
-                
-                const result = await response.json();
-                
-                if (result.output_url) {
-                    resultImg.src = result.output_url;
-                    downloadBtn.href = result.output_url;
-                    resultDiv.style.display = 'block';
-                    status.textContent = 'Ho gaya! HD photo ready hai';
-                } else {
-                    status.textContent = 'Error: ' + (result.err || 'API Error');
-                }
+
+                if (!response.ok) throw new Error('Server error');
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+
+                resultImg.src = url;
+                downloadBtn.href = url;
+                resultDiv.style.display = 'block';
+                status.textContent = 'Ho gaya! HD photo ready hai';
+
             } catch (error) {
-                status.textContent = 'Error: Photo HD nahi ho payi. Net ya Key check kar';
+                status.textContent = 'Error: Server busy hai. 1 min baad try kar';
                 console.log(error);
             }
-            
+
             hdButton.disabled = false;
         });
     </script>
